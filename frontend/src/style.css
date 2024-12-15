@@ -1,41 +1,121 @@
+/* Global Styles */
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #111;
+  color: #f0f0f0;
 }
 
 #app {
-  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
-form {
+/* Header Styles */
+.header-title {
+  color: #4CAF50;
+  font-size: 3em;
   margin-bottom: 20px;
 }
 
-input {
+/* Form Container */
+.form-container {
+  background-color: #222;
+  border-radius: 10px;
+  padding: 20px;
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
+  max-width: 600px;
+  margin-bottom: 20px;
 }
 
-button {
+.input-field {
+  margin-bottom: 15px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+}
+
+/* Recipe Results */
+.recipe-results {
+  background-color: #222;
+  color: #f0f0f0;
+  border-radius: 10px;
+  padding: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+.recipe-title {
+  color: #4CAF50;
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.recipe-section {
+  margin-bottom: 20px;
+}
+
+.recipe-subtitle {
+  color: #4CAF50;
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.recipe-list {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.recipe-item {
+  margin-bottom: 5px;
+}
+
+.motherly-advice {
+  font-style: italic;
+  color: #f0f0f0;
+  margin-bottom: 20px;
+}
+
+.recipe-instructions {
+  padding: 15px;
+  background-color: #333;
+  border-radius: 10px;
+  margin-top: 10px;
+  color: #f0f0f0;
+}
+
+/* Dish Image */
+.dish-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* Submit Button */
+.submit-button {
   background-color: #4CAF50;
+  padding: 15px;
   color: white;
-  padding: 10px 20px;
   border: none;
   cursor: pointer;
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-size: 16px;
 }
 
-button:hover {
+.submit-button:hover {
   background-color: #45a049;
-}
-
-#recipeResults {
-  margin-top: 30px;
-}
-
-img {
-  max-width: 300px;
 }
