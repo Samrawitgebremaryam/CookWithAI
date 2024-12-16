@@ -57,6 +57,48 @@ const App = () => {
   return (
     <div id="app">
       <h1 className="header-title">Cooking Companion</h1>
+
+      {/* Success Message */}
+      {successMessage && <div className="success-message"><p>{successMessage}</p></div>}
+
+      {/* Display Recipe and Image */}
+      {recipe && (
+        <div id="recipeResults" className="recipe-results">
+          <div className="recipe-section">
+            <h3 className="recipe-subtitle">Motherly Advice:</h3>
+            <p className="motherly-advice">{motherlyAdvice}</p>
+          </div>
+
+          <h2 className="recipe-title">{selectedDish || customDish}</h2>
+
+          <div className="recipe-section">
+            <h3 className="recipe-subtitle">Ingredients:</h3>
+            <ul className="recipe-list">
+              {ingredients.split(',').map((ingredient, index) => (
+                <li key={index} className="recipe-item">{ingredient.trim()}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="recipe-section">
+            <h3 className="recipe-subtitle">Cooking Instructions:</h3>
+            <div className="recipe-instructions">
+              {/* Render the recipe as HTML */}
+              <p dangerouslySetInnerHTML={{ __html: recipe }}></p>
+            </div>
+          </div>
+
+          {/* Dish Image */}
+          {image && (
+            <div className="recipe-section">
+              <h3 className="recipe-subtitle">Dish Image:</h3>
+              <img src={image} alt="Generated Dish" className="dish-image" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recipe Generation Form */}
       <form onSubmit={handleSubmit} className="form-container">
         <fieldset className="input-field">
           <legend>Enter Ingredients (comma-separated):</legend>
@@ -103,46 +145,6 @@ const App = () => {
 
         <button type="submit" className="submit-button">Generate Recipe</button>
       </form>
-
-      {/* Success Message */}
-      {successMessage && <div className="success-message"><p>{successMessage}</p></div>}
-
-      {/* Display Recipe and Image */}
-      {recipe && (
-        <div id="recipeResults" className="recipe-results">
-          <div className="recipe-section">
-            <h3 className="recipe-subtitle">Motherly Advice:</h3>
-            <p className="motherly-advice">{motherlyAdvice}</p>
-          </div>
-
-          <h2 className="recipe-title">{selectedDish || customDish}</h2>
-
-          <div className="recipe-section">
-            <h3 className="recipe-subtitle">Ingredients:</h3>
-            <ul className="recipe-list">
-              {ingredients.split(',').map((ingredient, index) => (
-                <li key={index} className="recipe-item">{ingredient.trim()}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="recipe-section">
-            <h3 className="recipe-subtitle">Cooking Instructions:</h3>
-            <div className="recipe-instructions">
-              {/* Render the recipe as HTML */}
-              <p dangerouslySetInnerHTML={{ __html: recipe }}></p>
-            </div>
-          </div>
-
-          {/* Dish Image */}
-          {image && (
-            <div className="recipe-section">
-              <h3 className="recipe-subtitle">Dish Image:</h3>
-              <img src={image} alt="Generated Dish" className="dish-image" />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
