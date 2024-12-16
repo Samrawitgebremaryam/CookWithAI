@@ -10,34 +10,70 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
+// Initialize Google Generative AI with the API Key from .env file
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
 // Route for testing server functionality
 app.get('/', (req, res) => {
   res.send('Recipe Generator API is running!');
 });
 
-// Route for generating recipe based on ingredients and dish type
+// Enhanced Route for generating recipe based on ingredients and dish type
 app.post('/generate-recipe', async (req, res) => {
-  const { ingredients, dish } = req.body;
+  const { ingredients, dish, dietaryRestrictions, servings, time } = req.body;
 
   // Validate input
   if (!ingredients || ingredients.length === 0 || !dish) {
     return res.status(400).send({ message: 'Ingredients and dish are required for generating the recipe.' });
   }
 
-  // Construct the prompt dynamically based on user input for recipe
-  let prompt = `Generate a recipe for ${dish} using ${ingredients.join(', ')}.`;
-  prompt += ` Include step-by-step instructions and motherly advice to make the recipe extra special.`;
+  // Build a detailed prompt with examples and more context
+  let prompt = `You are a world-renowned chef. Create a detailed recipe for ${dish} using ${ingredients.join(', ')}. 
+  Include the following in the recipe:
+
+  - Serving size: ${servings || '4 servings'}
+  - Estimated cooking time: ${time || '30 minutes'}
+  - Dietary considerations: ${dietaryRestrictions || 'None'}
+  
+  Format the recipe as follows:
+  - Provide clear and detailed step-by-step instructions, like a mom teaching her child.
+  - Each step should be numbered.
+  - After each step, provide a “Motherly Tip” in italics.
+  - Make sure the recipe feels like a warm, loving experience.
+
+  Example format:
+
+  Step 1: Prepare the Chicken  
+  “First, my dear, take your boneless, skinless chicken breasts and cut them into small, bite-sized cubes. Ensure the pieces are about the same size for even cooking. Now, coat them with a little flour, salt, and pepper. Don't rush it—the flour coating will give it a beautiful crispy texture when we cook it.”  
+  *Motherly Tip:* “Don’t be shy with the flour! A good coating will ensure the chicken gets that perfect crispy crust we all love.”
+
+  Repeat this for each step in the recipe, using the ingredients provided.
+
+  The recipe should be formatted as HTML to make it easy for the front-end to display.”`;
+
+  // Add extra context or style depending on the dish
+  if (dietaryRestrictions) {
+    prompt += ` Ensure the recipe adheres to a ${dietaryRestrictions} diet.`;
+  }
 
   try {
-    // Generate the recipe using OpenAI
-    const recipeResponse = await generateRecipe(prompt);
+    // Generate the recipe using Google Generative AI
+    const result = await model.generateContent(prompt, {
+      temperature: 0.7, // Controls creativity
+      maxTokens: 500, // Allow for a longer recipe with detailed instructions
+      topP: 0.9, // Nucleus sampling for diversity
+      frequencyPenalty: 0.2, // Avoid repetition of words
+      presencePenalty: 0.3, // Avoid repeated ideas
+    });
 
-    const recipe = recipeResponse.data;
+    const recipe = result.response.text();
 
-    // Generate image for the dish using DALL·E
-    const imageUrl = await generateImageWithDALL_E(dish);
+    // Generate the image for the dish using a service like Replicate
+    const imageUrl = await generateImage(dish, ingredients);
 
-    // Respond with the generated recipe and image URL
+    // Respond with the generated recipe and image
     res.json({ recipe, imageUrl });
   } catch (error) {
     console.error('Error generating recipe:', error);
@@ -45,17 +81,17 @@ app.post('/generate-recipe', async (req, res) => {
   }
 });
 
-// Function to generate recipe (using OpenAI or similar service)
-async function generateRecipe(prompt) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const url = 'https://api.openai.com/v1/completions'; // Adjust endpoint if using GPT-4 or other models
+// Function to generate image using Replicate (Stable Diffusion)
+async function generateImage(dish, ingredients) {
+  const apiKey = process.env.REPLICATE_API_KEY;  // Get your Replicate API key from .env
+  const url = 'https://api.replicate.com/v1/predictions';
+
+  const prompt = `A high-quality image of a delicious ${dish} made with fresh ingredients like ${ingredients.join(', ')}. Beautifully plated and appetizing.`;
 
   try {
     const response = await axios.post(url, {
-      model: "gpt-3.5-turbo",  // Use the GPT model (can also use GPT-4 for better results)
-      prompt: prompt,
-      max_tokens: 400,  // Control the output length
-      temperature: 0.7,  // Creativity in the output
+      version: 'stable-diffusion-v1',  // Use the appropriate model version
+      input: { prompt: prompt, num_outputs: 1 },
     }, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -63,35 +99,12 @@ async function generateRecipe(prompt) {
       }
     });
 
-    return response.data.choices[0].text;  // Extracting recipe text from response
-  } catch (error) {
-    console.error('Error generating recipe:', error);
-    throw new Error('Failed to generate recipe.');
-  }
-}
-
-// Function to generate image using DALL·E
-async function generateImageWithDALL_E(dish) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const url = 'https://api.openai.com/v1/images/generations';
-  const prompt = `A high-quality image of a delicious ${dish} made with fresh ingredients, beautifully plated.`;
-
-  try {
-    const response = await axios.post(url, {
-      prompt: prompt,
-      n: 1,  // Only one image
-      size: "1024x1024",  // Image size
-    }, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      }
-    });
-
-    return response.data.data[0].url;  // Returning image URL from response
+    // Returning the image URL from the response
+    const imageUrl = response.data.output[0].url;
+    return imageUrl;
   } catch (error) {
     console.error('Error generating image:', error);
-    return 'https://example.com/default_image.jpg';  // Return a placeholder image in case of failure
+    return 'https://example.com/default_image.jpg';  // Placeholder image
   }
 }
 
